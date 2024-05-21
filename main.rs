@@ -12,6 +12,9 @@ use std::time::Duration;
 const SIZE:u32 = 10;
 const DELAY_MS:Duration = Duration::from_millis(200);
 
+/******************************************************************************/
+/*                             COMPARISON SORTS                               */
+/******************************************************************************/
 fn bubble_sort(vec: &mut Vec<u32>) {
     for i in (0..SIZE).rev() {
         for j in 0..i {
@@ -27,6 +30,48 @@ fn bubble_sort(vec: &mut Vec<u32>) {
     }
 }
 
+fn heapify(vec: &mut Vec<u32>,sz: u32,i: u32){
+    let ui = i as usize;
+    let mut max:usize = ui;
+    let l:u32 = 2*i+1;
+    let r:u32 = 2*i+2;
+    if l < sz && vec[l as usize] > vec[max as usize]{
+        max = l as usize;   
+    }
+    if r < sz && vec[r as usize] > vec[max as usize]{
+        max = r as usize;   
+    }
+    if max != ui{
+        vec[ui] ^= vec[max];
+        vec[max] ^= vec[ui];
+        vec[ui] ^= vec[max];
+        heapify(vec,sz,max as u32);
+    }
+    
+}
+
+fn heap_sort(vec: &mut Vec<u32>) {
+    for i in (0..(SIZE/2)).rev(){
+        heapify(vec,SIZE,i);
+        
+        thread::sleep(DELAY_MS);
+        println!("{:?}",vec); 
+    }
+    for i in (0..SIZE).rev(){
+        let ui=i as usize;
+        vec[0] ^= vec[ui];
+        vec[ui] ^= vec[0];
+        vec[0] ^= vec[ui];
+        heapify(vec,i,0);
+        
+        thread::sleep(DELAY_MS);
+        println!("{:?}",vec); 
+    }
+}
+
+/******************************************************************************/
+/*                           NON COMPARISON SORTS                             */
+/******************************************************************************/
 fn pigeonhole_sort(vec: &mut Vec<u32>) {
     let min = vec.iter().min().clone().expect("value");
     let range = SIZE - min;
