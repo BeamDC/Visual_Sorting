@@ -30,6 +30,25 @@ fn bubble_sort(vec: &mut Vec<u32>) {
     }
 }
 
+fn selection_sort(vec: &mut Vec<u32>) {
+    for i in 0..SIZE{
+        let ui = i as usize;
+        let mut min = ui;
+        for j in i+1..SIZE{
+            let uj=j as usize;
+            if vec[uj] < vec[min]{
+                min = uj;
+            }
+        }
+        let t = vec[ui];
+        vec[ui] = vec[min];
+        vec[min] = t;
+        
+        thread::sleep(DELAY_MS);
+        println!("{:?}",vec);
+    }
+}
+
 fn heapify(vec: &mut Vec<u32>,sz: u32,i: u32){
     let ui = i as usize;
     let mut max:usize = ui;
