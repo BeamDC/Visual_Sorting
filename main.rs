@@ -22,7 +22,6 @@ fn bubble_sort(vec: &mut Vec<u32>) {
                 vec[j] ^= vec[j+1];
             }
         }
-        //sleep for a given amount of time
         thread::sleep(DELAY_MS);
         println!("{:?}",vec);
     }
