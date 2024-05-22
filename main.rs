@@ -155,10 +155,11 @@ fn radix_helper(vec: &mut Vec<u32>,place: u32,radix: u32){
 fn radix_sort_lsd(vec: &mut Vec<u32>) {
     let mut mul = 1;
     let mut max = SIZE-1;
+    let radix = 10;
     while max > 0{
-        radix_helper(vec,mul,10);
-        mul*=10;
-        max/=10;
+        radix_helper(vec,mul,radix);
+        mul*=radix;
+        max/=radix;
         
         thread::sleep(DELAY_MS);
         // println!("{:?}",vec);
