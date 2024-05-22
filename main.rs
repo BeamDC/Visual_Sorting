@@ -50,6 +50,8 @@ fn selection_sort(vec: &mut Vec<u32>) {
     }
 }
 
+//insertion sort goes here
+
 fn heapify(vec: &mut Vec<u32>,sz: u32,i: u32){
     let ui = i as usize;
     let mut max:usize = ui;
