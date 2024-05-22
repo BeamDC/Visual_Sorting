@@ -1,8 +1,11 @@
+#![allow(dead_code, unused_variables)]
+
 //rendering
-// extern crate kiss3d;
-// use kiss3d::nalgebra::{Vector3, UnitQuaternion};
-// use kiss3d::window::Window;
-// use kiss3d::light::Light;
+use eframe::egui;
+// use speedy2d::Window;
+// use speedy2d::color::Color;
+// use speedy2d::window::{WindowHandler, WindowHelper};
+// use speedy2d::Graphics2D;
 
 //everything else
 use rand::prelude::SliceRandom;
@@ -10,10 +13,10 @@ use std::thread;
 use std::time::Duration;
 
 const SIZE:u32 = 10;
-const DELAY_MS:Duration = Duration::from_millis(200);
+const DELAY_MS:Duration = Duration::from_millis(0);
 
 /******************************************************************************/
-/*                             COMPARISON SORTS                               */
+/*                              COMPARISON SORTS                              */
 /******************************************************************************/
 fn bubble_sort(vec: &mut Vec<u32>) {
     for i in (0..SIZE).rev() {
@@ -26,7 +29,7 @@ fn bubble_sort(vec: &mut Vec<u32>) {
             }
         }
         thread::sleep(DELAY_MS);
-        println!("{:?}",vec);
+        // println!("{:?}",vec);
     }
 }
 
@@ -43,9 +46,9 @@ fn selection_sort(vec: &mut Vec<u32>) {
         let t = vec[ui];
         vec[ui] = vec[min];
         vec[min] = t;
-        
+
         thread::sleep(DELAY_MS);
-        println!("{:?}",vec);
+        // println!("{:?}",vec);
     }
 }
 
@@ -55,10 +58,10 @@ fn heapify(vec: &mut Vec<u32>,sz: u32,i: u32){
     let l:u32 = 2*i+1;
     let r:u32 = 2*i+2;
     if l < sz && vec[l as usize] > vec[max as usize]{
-        max = l as usize;   
+        max = l as usize;
     }
     if r < sz && vec[r as usize] > vec[max as usize]{
-        max = r as usize;   
+        max = r as usize;
     }
     if max != ui{
         vec[ui] ^= vec[max];
@@ -66,15 +69,15 @@ fn heapify(vec: &mut Vec<u32>,sz: u32,i: u32){
         vec[ui] ^= vec[max];
         heapify(vec,sz,max as u32);
     }
-    
+
 }
 
 fn heap_sort(vec: &mut Vec<u32>) {
     for i in (0..(SIZE/2)).rev(){
         heapify(vec,SIZE,i);
-        
+
         thread::sleep(DELAY_MS);
-        println!("{:?}",vec); 
+        // println!("{:?}",vec);
     }
     for i in (0..SIZE).rev(){
         let ui=i as usize;
@@ -82,14 +85,14 @@ fn heap_sort(vec: &mut Vec<u32>) {
         vec[ui] ^= vec[0];
         vec[0] ^= vec[ui];
         heapify(vec,i,0);
-        
+
         thread::sleep(DELAY_MS);
-        println!("{:?}",vec); 
+        // println!("{:?}",vec);
     }
 }
 
 /******************************************************************************/
-/*                           NON-COMPARISON SORTS                             */
+/*                            NON-COMPARISON SORTS                            */
 /******************************************************************************/
 fn pigeonhole_sort(vec: &mut Vec<u32>) {
     let min = vec.iter().min().clone().expect("value");
@@ -100,7 +103,7 @@ fn pigeonhole_sort(vec: &mut Vec<u32>) {
         let ind = curr - min;
         aux[ind as usize] = curr;
         thread::sleep(DELAY_MS);
-        println!("{:?}",aux);
+        // println!("{:?}",aux);
     }
     *vec = aux;
 }
@@ -112,12 +115,10 @@ fn counting_sort(vec: &mut Vec<u32>){
         let ind = vec[i as usize];
         count_vec[ind as usize] +=1;
         thread::sleep(DELAY_MS);
-        println!("{:?}",count_arr);
+        // println!("{:?}",count_vec);
     }
     for i in 0..SIZE-1{
         count_vec[(i+1) as usize] += count_vec[i as usize];
-        thread::sleep(DELAY_MS);
-        println!("{:?}",count_vec);
     }
     for i in (0..SIZE).rev(){
         let a = vec[i as usize];
@@ -125,7 +126,7 @@ fn counting_sort(vec: &mut Vec<u32>){
         count_vec[a as usize] -= 1;
         aux[b as usize] = a;
         thread::sleep(DELAY_MS);
-        println!("{:?}",aux);
+        // println!("{:?}",aux);
     }
     *vec = aux;
 }
@@ -138,6 +139,59 @@ fn set_data(){
     println!("\n{:?}",vec);
 }
 
-fn main() {
-    set_data()
+
+/******************************************************************************/
+/*                             GRAPHICS HANDLING                              */
+/******************************************************************************/
+
+struct MainWindow {
+    sort_type: String,
+}
+
+impl Default for MainWindow {
+    fn default() -> Self {
+        Self {
+            sort_type: "Bubble Sort".to_owned(),
+        }
+    }
+}
+
+impl eframe::App for MainWindow {
+    fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+
+        egui::CentralPanel::default().show(ctx, |ui| {
+            // ui.heading("Visual Sorting");
+
+            // Dropdown menu for sorting types
+            ui.label(format!("Selected Sorting Algorithm: '{}'", self.sort_type));
+
+            ui.horizontal(|ui| {
+                let label = ui.label("Sorting Type:");
+
+                let algorithms =
+                    ["Bubble Sort", "Selection Sort", "Insertion Sort", "Heap Sort",
+                        "Pigeonhole Sort", "Counting Sort"];
+
+                //dropdown menu for all possible algorithms
+            });
+        });
+
+    }
+}
+
+fn main() -> Result<(), eframe::Error>{
+    
+    //setup and display the window
+    env_logger::init(); // Log to stderr (if you run with `RUST_LOG=debug`).
+    let options = eframe::NativeOptions {
+        viewport: egui::ViewportBuilder::default().with_inner_size([320.0, 240.0]),
+        ..Default::default()
+    };
+    eframe::run_native(
+        "Visual Sorting",
+        options,
+        Box::new(|cc| {
+            Box::<MainWindow>::default()
+        }),
+    )
 }
