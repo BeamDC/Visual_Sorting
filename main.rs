@@ -7,6 +7,8 @@ use eframe::egui;
 use rand::prelude::SliceRandom;
 use std::thread;
 use std::time::Duration;
+use std::cmp::PartialEq;
+use std::fmt;
 
 const SIZE:u32 = 10;
 const DELAY_MS:Duration = Duration::from_millis(0);
@@ -101,7 +103,7 @@ fn merge(left: &Vec<u32>, right: &Vec<u32>) -> Vec<u32>{
             j+=1;
         }
     }
-    
+
     if i < left.len() {
         while i < left.len() {
             merged.push(left[i]);
@@ -131,7 +133,7 @@ fn merge_sort(vec: &Vec<u32>) -> Vec<u32> {
 
         thread::sleep(DELAY_MS);
         //println!("{:?}",vec);
-        merged   
+        merged
     }
 }
 
@@ -183,12 +185,12 @@ fn radix_helper(vec: &mut Vec<u32>,place: u32,radix: u32){
         let ind = digit_of(vec[i as usize]);
         count_vec[ind as usize] += 1;
     }
-    
+
     for i in 1..SIZE{
         let ui = i as usize;
         count_vec[ui] += count_vec[ui-1];
     }
-    
+
     for i in (0..SIZE).rev(){
         let ui = i as usize;
         let ind = digit_of(vec[ui]);
@@ -208,7 +210,7 @@ fn radix_sort_lsd(vec: &mut Vec<u32>) {
         radix_helper(vec,mul,radix);
         mul*=radix;
         max/=radix;
-        
+
         thread::sleep(DELAY_MS);
         // println!("{:?}",vec);
     }
@@ -225,14 +227,56 @@ fn set_data(){
 /******************************************************************************/
 /*                             GRAPHICS HANDLING                              */
 /******************************************************************************/
+#[derive(PartialEq)]
+enum types{
+    Bubble,
+    Selection,
+    Insertion,
+    Heap,
+    Merge,
+    Pigeonhole,
+    Counting,
+    Radix,
+}
+
+impl types {
+    fn as_str(&self) -> &'static str {
+        match self {
+            types::Bubble => "Bubble Sort",
+            types::Selection => "Selection Sort",
+            types::Insertion => "Insertion Sort",
+            types::Heap => "Heap Sort",
+            types::Merge => "Merge Sort",
+            types::Pigeonhole => "Pigeonhole Sort",
+            types::Counting => "Counting Sort",
+            types::Radix => "Radix Sort"
+        }
+    }
+}
+
+impl fmt::Display for types {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            types::Bubble => write!(f,"Bubble Sort"),
+            types::Selection => write!(f,"Selection Sort"),
+            types::Insertion => write!(f,"Insertion Sort"),
+            types::Heap => write!(f,"Heap Sort"),
+            types::Merge => write!(f,"Merge Sort"),
+            types::Pigeonhole => write!(f,"Pigeonhole Sort"),
+            types::Counting => write!(f,"Counting Sort"),
+            types::Radix => write!(f,"Radix Sort")
+        }
+    }
+}
+
 struct MainWindow {
-    sort_type: String,
+    sort_type: types,
 }
 
 impl Default for MainWindow {
     fn default() -> Self {
         Self {
-            sort_type: "Bubble Sort".to_owned(),
+            sort_type: types::Bubble,
         }
     }
 }
@@ -244,16 +288,27 @@ impl eframe::App for MainWindow {
             // ui.heading("Visual Sorting");
 
             // Dropdown menu for sorting types
-            ui.label(format!("Selected Sorting Algorithm: '{}'", self.sort_type));
+            let selected_type:String = self.sort_type.to_string();
+            ui.label(format!("Selected Sorting Algorithm: '{}'", selected_type));
 
             ui.horizontal(|ui| {
                 let label = ui.label("Sorting Type:");
 
-                let algorithms =
-                    ["Bubble Sort", "Selection Sort", "Insertion Sort", "Heap Sort",
-                        "Pigeonhole Sort", "Counting Sort"];
-
-                //dropdown menu for all possible algorithms
+                egui::ComboBox::from_label("Take your pick")
+                    .selected_text(format!("{}",self.sort_type))
+                    .show_ui(ui, |ui| {
+                        ui.style_mut().wrap = Some(false);
+                        ui.set_min_width(60.0);
+                        ui.selectable_value(&mut self.sort_type, types::Bubble, types::Bubble.to_string());
+                        ui.selectable_value(&mut self.sort_type, types::Selection, types::Selection.to_string());
+                        ui.selectable_value(&mut self.sort_type, types::Insertion, types::Insertion.to_string());
+                        ui.selectable_value(&mut self.sort_type, types::Heap, types::Heap.to_string());
+                        ui.selectable_value(&mut self.sort_type, types::Merge, types::Merge.to_string());
+                        ui.selectable_value(&mut self.sort_type, types::Pigeonhole, types::Pigeonhole.to_string());
+                        ui.selectable_value(&mut self.sort_type, types::Counting, types::Counting.to_string());
+                        ui.selectable_value(&mut self.sort_type, types::Radix, types::Radix.to_string());
+                    });
+                ui.end_row();
             });
         });
 
@@ -261,7 +316,7 @@ impl eframe::App for MainWindow {
 }
 
 fn main() -> Result<(), eframe::Error>{
-    
+
     //setup and display the window
     env_logger::init(); // Log to stderr (if you run with `RUST_LOG=debug`).
     let options = eframe::NativeOptions {
