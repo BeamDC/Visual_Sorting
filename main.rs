@@ -2,10 +2,6 @@
 
 //rendering
 use eframe::egui;
-// use speedy2d::Window;
-// use speedy2d::color::Color;
-// use speedy2d::window::{WindowHandler, WindowHelper};
-// use speedy2d::Graphics2D;
 
 //everything else
 use rand::prelude::SliceRandom;
@@ -131,6 +127,44 @@ fn counting_sort(vec: &mut Vec<u32>){
     *vec = aux;
 }
 
+fn radix_helper(vec: &mut Vec<u32>,place: u32,radix: u32){
+    let mut count_vec:Vec<u32> = vec![0; (SIZE+1) as usize];
+    let mut aux:Vec<u32> = vec![0;SIZE as usize];
+    let digit_of = |x| x / place % radix;
+    for i in 0..SIZE{
+        let ind = digit_of(vec[i as usize]);
+        count_vec[ind as usize] += 1;
+    }
+    
+    for i in 1..SIZE{
+        let ui = i as usize;
+        count_vec[ui] += count_vec[ui-1];
+    }
+    
+    for i in (0..SIZE).rev(){
+        let ui = i as usize;
+        let ind = digit_of(vec[ui]);
+        let uind = ind as usize;
+        count_vec[uind] -= 1;
+        aux[count_vec[uind] as usize] = vec[ui];
+        // println!("{:?}",aux);
+    }
+    *vec = aux;
+}
+
+fn radix_sort_lsd(vec: &mut Vec<u32>) {
+    let mut mul = 1;
+    let mut max = SIZE-1;
+    while max > 0{
+        radix_helper(vec,mul,10);
+        mul*=10;
+        max/=10;
+        
+        thread::sleep(DELAY_MS);
+        // println!("{:?}",vec);
+    }
+}
+
 fn set_data(){
     let mut vec: Vec<u32> = (0..SIZE).collect();
     vec.shuffle(&mut rand::thread_rng());
@@ -139,11 +173,9 @@ fn set_data(){
     println!("\n{:?}",vec);
 }
 
-
 /******************************************************************************/
 /*                             GRAPHICS HANDLING                              */
 /******************************************************************************/
-
 struct MainWindow {
     sort_type: String,
 }
