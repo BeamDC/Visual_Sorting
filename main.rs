@@ -298,6 +298,7 @@ enum Types {
     Pigeonhole,
     Counting,
     RadixLSD,
+    //add shell, comb, gnome
 }
 
 // string values for Types::
