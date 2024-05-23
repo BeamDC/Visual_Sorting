@@ -76,7 +76,7 @@ fn gnome_sort(vec: &mut Vec<u32>, delay: Duration) {
             pos-=1;
         }
         thread::sleep(delay);
-        println!("{:?}",vec);
+        // println!("{:?}",vec);
     }
 }
 
@@ -94,10 +94,32 @@ fn shell_sort(vec: &mut Vec<u32>, delay: Duration) {
             }
             vec[j] = temp;
             thread::sleep(delay);
-            println!("{:?}",vec);
+            // println!("{:?}",vec);
         }
     }
-    
+}
+
+fn comb_sort(vec: &mut Vec<u32>, delay: Duration) {
+    let len = vec.len();
+    let mut gap = len;
+    let mut swapped = true;
+    while gap > 1 || swapped {
+        gap = (4 * gap) / 5;
+        if gap < 1 {
+            gap = 1;
+        }
+        let mut i = 0;
+        swapped = false;
+        while i + gap < len {
+            if vec[i] > vec[i + gap] {
+                vec.swap(i, i + gap);
+                swapped = true;
+            }
+            i += 1;
+        }
+        thread::sleep(delay);
+        // println!("{:?}",vec);
+    }
 }
 
 fn heapify(vec: &mut Vec<u32>,sz: u32,i: u32, delay: Duration){
