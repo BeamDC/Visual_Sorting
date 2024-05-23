@@ -361,9 +361,7 @@ impl eframe::App for MainWindow {
             let selected_type:String = self.sort_type.to_string();
             ui.end_row();
 
-            //initialize vec here
-            //this means vec.len() can no longer be constant
-            //going to have to replace all occurrences with vec.len()
+            //initialize vec and delay
             let mut vec: Vec<u32> = (0..self.vec_size).collect();
             let delay = Duration::from_millis(self.delay_ms);
 
@@ -390,7 +388,7 @@ impl eframe::App for MainWindow {
 
             //optional selector for the base used by radix sort
             if self.sort_type == Types::RadixLSD{
-                //draggable value box for the delay between sorting iterations
+                //draggable value box for the base used in radix sort
                 ui.horizontal(|ui| {
                     ui.label("Radix Base: ");
                     ui.add(egui::DragValue::new(&mut self.radix_base).speed(0.8));
@@ -408,8 +406,8 @@ impl eframe::App for MainWindow {
             ui.horizontal(|ui| {
                 ui.label("# of elements:");
                 ui.add(egui::DragValue::new(&mut self.vec_size).speed(0.8));
-                if self.vec_size < 1{
-                    self.vec_size = 1;
+                if self.vec_size < 2{
+                    self.vec_size = 2;
                 }
             });
             ui.end_row();
