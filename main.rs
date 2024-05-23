@@ -80,6 +80,26 @@ fn gnome_sort(vec: &mut Vec<u32>, delay: Duration) {
     }
 }
 
+fn shell_sort(vec: &mut Vec<u32>, delay: Duration) {
+    let gaps:Vec<u32> = vec![701,301,132,57,23,10,4,1];
+    
+    for gap in gaps{
+        for i in gap as usize..vec.len(){
+            let temp = vec[i];
+            let ugap = gap as usize;
+            let mut j = i;
+            while j >= ugap && vec[j-ugap] > temp{
+                vec[j] = vec[j-ugap];
+                j-=ugap;
+            }
+            vec[j] = temp;
+            thread::sleep(delay);
+            println!("{:?}",vec);
+        }
+    }
+    
+}
+
 fn heapify(vec: &mut Vec<u32>,sz: u32,i: u32, delay: Duration){
     let ui = i as usize;
     let mut max:usize = ui;
