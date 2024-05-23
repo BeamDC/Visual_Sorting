@@ -208,6 +208,35 @@ fn merge_sort(vec: &mut Vec<u32>, delay: Duration) {
     println!("{:?}",vec);
 }
 
+fn partition(vec: &mut Vec<u32>, left: isize, right: isize, delay: Duration) -> isize {
+    let pivot = right;
+    let mut i: isize = left as isize - 1;
+
+    for j in left..=right - 1 {
+        if vec[j as usize] <= vec[pivot as usize] {
+            i += 1;
+            vec.swap(i as usize, j as usize);
+        }
+    }
+
+    vec.swap((i + 1) as usize, pivot as usize);
+    thread::sleep(delay);
+    println!("{:?}",vec);
+    i + 1
+}
+
+fn quicksort(vec: &mut Vec<u32>, left: isize, right: isize, delay: Duration) {
+    if left <= right {
+        let partition_idx = partition(vec, left, right, delay);
+        quicksort(vec, left, partition_idx - 1, delay);
+        quicksort(vec, partition_idx + 1, right, delay);
+    }
+}
+
+fn quick_sort(vec: &mut Vec<u32>, delay: Duration) {
+    quicksort(vec, 0, (vec.len() - 1) as isize, delay);
+}
+
 /******************************************************************************/
 /*                            NON-COMPARISON SORTS                            */
 /******************************************************************************/
