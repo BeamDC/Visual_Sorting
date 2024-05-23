@@ -225,16 +225,16 @@ fn partition(vec: &mut Vec<u32>, left: isize, right: isize, delay: Duration) -> 
     i + 1
 }
 
-fn quicksort(vec: &mut Vec<u32>, left: isize, right: isize, delay: Duration) {
+fn quick_sort_helper(vec: &mut Vec<u32>, left: isize, right: isize, delay: Duration) {
     if left <= right {
         let partition_idx = partition(vec, left, right, delay);
-        quicksort(vec, left, partition_idx - 1, delay);
-        quicksort(vec, partition_idx + 1, right, delay);
+        quick_sort_helper(vec, left, partition_idx - 1, delay);
+        quick_sort_helper(vec, partition_idx + 1, right, delay);
     }
 }
 
 fn quick_sort(vec: &mut Vec<u32>, delay: Duration) {
-    quicksort(vec, 0, (vec.len() - 1) as isize, delay);
+    quick_sort_helper(vec, 0, (vec.len() - 1) as isize, delay);
 }
 
 /******************************************************************************/
