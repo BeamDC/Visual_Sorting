@@ -327,21 +327,21 @@ enum Types {
     Pigeonhole,
     Counting,
     RadixLSD,
-    //add shell, comb, gnome
+    //add shell, comb, gnome, quick
 }
 
 // string values for Types::
 impl Types {
     fn as_str(&self) -> &'static str {
         match self {
-            Types::Bubble => "Bubble Sort",
-            Types::Selection => "Selection Sort",
-            Types::Insertion => "Insertion Sort",
-            Types::Heap => "Heap Sort",
-            Types::Merge => "Merge Sort",
+            Types::Bubble     => "Bubble Sort",
+            Types::Selection  => "Selection Sort",
+            Types::Insertion  => "Insertion Sort",
+            Types::Heap       => "Heap Sort",
+            Types::Merge      => "Merge Sort",
             Types::Pigeonhole => "Pigeonhole Sort",
-            Types::Counting => "Counting Sort",
-            Types::RadixLSD => "Radix Sort"
+            Types::Counting   => "Counting Sort",
+            Types::RadixLSD   => "Radix Sort"
         }
     }
 }
@@ -350,14 +350,14 @@ impl Types {
 impl fmt::Display for Types {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            Types::Bubble => write!(f, "Bubble Sort"),
-            Types::Selection => write!(f, "Selection Sort"),
-            Types::Insertion => write!(f, "Insertion Sort"),
-            Types::Heap => write!(f, "Heap Sort"),
-            Types::Merge => write!(f, "Merge Sort"),
+            Types::Bubble     => write!(f, "Bubble Sort"),
+            Types::Selection  => write!(f, "Selection Sort"),
+            Types::Insertion  => write!(f, "Insertion Sort"),
+            Types::Heap       => write!(f, "Heap Sort"),
+            Types::Merge      => write!(f, "Merge Sort"),
             Types::Pigeonhole => write!(f, "Pigeonhole Sort"),
-            Types::Counting => write!(f, "Counting Sort"),
-            Types::RadixLSD => write!(f, "Radix Sort")
+            Types::Counting   => write!(f, "Counting Sort"),
+            Types::RadixLSD   => write!(f, "Radix Sort")
         }
     }
 }
