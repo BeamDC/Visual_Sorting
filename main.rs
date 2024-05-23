@@ -221,7 +221,7 @@ fn partition(vec: &mut Vec<u32>, left: isize, right: isize, delay: Duration) -> 
 
     vec.swap((i + 1) as usize, pivot as usize);
     thread::sleep(delay);
-    println!("{:?}",vec);
+    // println!("{:?}",vec);
     i + 1
 }
 
