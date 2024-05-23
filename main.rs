@@ -103,52 +103,51 @@ fn heap_sort(vec: &mut Vec<u32>, delay: Duration) {
     }
 }
 
-//modify this to work in place
-fn merge(left: &Vec<u32>, right: &Vec<u32>, delay: Duration) -> Vec<u32>{
-    let mut i = 0;
-    let mut j = 0;
-    let mut merged:Vec<u32> = Vec::new();
-    while i<left.len() && j<right.len(){
-        if left[i] < right[j]{
-            merged.push(left[i]);
-            i+=1;
-        }else{
-            merged.push(right[j]);
-            j+=1;
-        }
+fn merge_sort(vec: &mut Vec<u32>, delay: Duration) {
+    let len = vec.len();
+    if len <= 1 {
+        return;
     }
 
-    if i < left.len() {
-        while i < left.len() {
-            merged.push(left[i]);
-            i = i + 1;
+    let mid = len / 2;
+    let mut left  = vec[0..mid].to_vec();
+    let mut right = vec[mid..].to_vec();
+
+    merge_sort(&mut left,delay);
+    merge_sort(&mut right,delay);
+
+    let mut i = 0; // Index for left half
+    let mut j = 0; // Index for right half
+    let mut k = 0; // Index for merged array
+    
+    //merge left & right
+    while i < left.len() && j < right.len() {
+        if left[i] <= right[j] {
+            vec[k] = left[i];
+            i += 1;
+        } else {
+            vec[k] = right[j];
+            j += 1;
         }
+        k += 1;
     }
 
-    if j < right.len() {
-        while j < right.len() {
-            merged.push(right[j]);
-            j = j + 1;
-        }
+    // Copy remaining elements from left half
+    while i < left.len() {
+        vec[k] = left[i];
+        i += 1;
+        k += 1;
     }
+
+    // Copy remaining elements from right half
+    while j < right.len() {
+        vec[k] = right[j];
+        j += 1;
+        k += 1;
+    }
+    
     thread::sleep(delay);
-    println!("{:?}",merged);
-    merged
-}
-
-fn merge_sort(vec: &Vec<u32>, delay: Duration) -> Vec<u32> {
-    if vec.len() < 2{
-        vec.to_vec()
-    }else{
-        let mid = vec.len()/2;
-        let left = merge_sort(&vec[0..mid].to_vec(),delay);
-        let right = merge_sort(&vec[mid..].to_vec(),delay);
-        let merged = merge(&left,&right,delay);
-
-        thread::sleep(delay);
-        //println!("{:?}",vec);
-        merged
-    }
+    println!("{:?}",vec);
 }
 
 /******************************************************************************/
