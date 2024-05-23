@@ -64,6 +64,22 @@ fn insertion_sort(vec: &mut Vec<u32>, delay: Duration){
     }
 }
 
+fn gnome_sort(vec: &mut Vec<u32>, delay: Duration) {
+    let mut pos:usize = 0;
+    while pos < vec.len(){
+        if pos == 0 || vec[pos] >= vec[pos-1]{
+            pos += 1;
+        }else{
+            vec[pos] ^= vec[pos-1];
+            vec[pos-1] ^= vec[pos];
+            vec[pos] ^= vec[pos-1];
+            pos-=1;
+        }
+        thread::sleep(delay);
+        println!("{:?}",vec);
+    }
+}
+
 fn heapify(vec: &mut Vec<u32>,sz: u32,i: u32, delay: Duration){
     let ui = i as usize;
     let mut max:usize = ui;
