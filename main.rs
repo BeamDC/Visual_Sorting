@@ -243,6 +243,7 @@ enum Types {
     RadixLSD,
 }
 
+// string values for Types::
 impl Types {
     fn as_str(&self) -> &'static str {
         match self {
@@ -258,6 +259,7 @@ impl Types {
     }
 }
 
+// formatting to allow Types:: to be printed
 impl fmt::Display for Types {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
