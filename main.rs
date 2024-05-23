@@ -10,33 +10,30 @@ use std::time::Duration;
 use std::cmp::PartialEq;
 use std::fmt;
 
-const SIZE:u32 = 10;
-const DELAY_MS:Duration = Duration::from_millis(0);
-
 /******************************************************************************/
 /*                              COMPARISON SORTS                              */
 /******************************************************************************/
-fn bubble_sort(vec: &mut Vec<u32>) {
-    for i in (0..SIZE).rev() {
+fn bubble_sort(vec: &mut Vec<u32>, delay: Duration) {
+    for i in (0..vec.len()).rev() {
         for j in 0..i {
-            let uj=j as usize;
+            let uj= j;
             if vec[uj] > vec[uj+1] {
                 vec[uj] ^= vec[uj+1];
                 vec[uj+1] ^= vec[uj];
                 vec[uj] ^= vec[uj+1];
             }
         }
-        thread::sleep(DELAY_MS);
+        thread::sleep(delay);
         // println!("{:?}",vec);
     }
 }
 
-fn selection_sort(vec: &mut Vec<u32>) {
-    for i in 0..SIZE{
-        let ui = i as usize;
+fn selection_sort(vec: &mut Vec<u32>, delay: Duration) {
+    for i in 0..vec.len(){
+        let ui = i;
         let mut min = ui;
-        for j in i+1..SIZE{
-            let uj=j as usize;
+        for j in i+1..vec.len(){
+            let uj= j;
             if vec[uj] < vec[min]{
                 min = uj;
             }
@@ -45,54 +42,69 @@ fn selection_sort(vec: &mut Vec<u32>) {
         vec[ui] = vec[min];
         vec[min] = t;
 
-        thread::sleep(DELAY_MS);
+        thread::sleep(delay);
         // println!("{:?}",vec);
     }
 }
 
-//insertion sort goes here
+fn insertion_sort(vec: &mut Vec<u32>, delay: Duration){
+    for i in 1..vec.len(){
+        let ui = i;
+        let mut uj = ui;
+        let cur = vec[ui];
 
-fn heapify(vec: &mut Vec<u32>,sz: u32,i: u32){
+        while uj > 0 && cur < vec[uj - 1] {
+            vec[uj] = vec[uj - 1];
+            uj -= 1;
+        }
+
+        vec[uj] = cur;
+        thread::sleep(delay);
+        // println!("{:?}",vec);
+    }
+}
+
+fn heapify(vec: &mut Vec<u32>,sz: u32,i: u32, delay: Duration){
     let ui = i as usize;
     let mut max:usize = ui;
     let l:u32 = 2*i+1;
     let r:u32 = 2*i+2;
-    if l < sz && vec[l as usize] > vec[max as usize]{
+    if l < sz && vec[l as usize] > vec[max]{
         max = l as usize;
     }
-    if r < sz && vec[r as usize] > vec[max as usize]{
+    if r < sz && vec[r as usize] > vec[max]{
         max = r as usize;
     }
     if max != ui{
         vec[ui] ^= vec[max];
         vec[max] ^= vec[ui];
         vec[ui] ^= vec[max];
-        heapify(vec,sz,max as u32);
+        heapify(vec,sz,max as u32,delay);
     }
 
 }
 
-fn heap_sort(vec: &mut Vec<u32>) {
-    for i in (0..(SIZE/2)).rev(){
-        heapify(vec,SIZE,i);
+fn heap_sort(vec: &mut Vec<u32>, delay: Duration) {
+    for i in (0..(vec.len()/2)).rev(){
+        heapify(vec,vec.len() as u32, i as u32,delay);
 
-        thread::sleep(DELAY_MS);
+        thread::sleep(delay);
         // println!("{:?}",vec);
     }
-    for i in (0..SIZE).rev(){
-        let ui=i as usize;
+    for i in (0..vec.len()).rev(){
+        let ui= i;
         vec[0] ^= vec[ui];
         vec[ui] ^= vec[0];
         vec[0] ^= vec[ui];
-        heapify(vec,i,0);
+        heapify(vec,i as u32,0,delay);
 
-        thread::sleep(DELAY_MS);
+        thread::sleep(delay);
         // println!("{:?}",vec);
     }
 }
 
 //modify this to work in place
-fn merge(left: &Vec<u32>, right: &Vec<u32>) -> Vec<u32>{
+fn merge(left: &Vec<u32>, right: &Vec<u32>, delay: Duration) -> Vec<u32>{
     let mut i = 0;
     let mut j = 0;
     let mut merged:Vec<u32> = Vec::new();
@@ -119,21 +131,21 @@ fn merge(left: &Vec<u32>, right: &Vec<u32>) -> Vec<u32>{
             j = j + 1;
         }
     }
-    thread::sleep(DELAY_MS);
+    thread::sleep(delay);
     println!("{:?}",merged);
     merged
 }
 
-fn merge_sort(vec: &Vec<u32>) -> Vec<u32> {
+fn merge_sort(vec: &Vec<u32>, delay: Duration) -> Vec<u32> {
     if vec.len() < 2{
         vec.to_vec()
     }else{
         let mid = vec.len()/2;
-        let left = merge_sort(&vec[0..mid].to_vec());
-        let right = merge_sort(&vec[mid..].to_vec());
-        let merged = merge(&left,&right);
+        let left = merge_sort(&vec[0..mid].to_vec(),delay);
+        let right = merge_sort(&vec[mid..].to_vec(),delay);
+        let merged = merge(&left,&right,delay);
 
-        thread::sleep(DELAY_MS);
+        thread::sleep(delay);
         //println!("{:?}",vec);
         merged
     }
@@ -142,59 +154,59 @@ fn merge_sort(vec: &Vec<u32>) -> Vec<u32> {
 /******************************************************************************/
 /*                            NON-COMPARISON SORTS                            */
 /******************************************************************************/
-fn pigeonhole_sort(vec: &mut Vec<u32>) {
+fn pigeonhole_sort(vec: &mut Vec<u32>, delay: Duration) {
     let min = vec.iter().min().clone().expect("value");
-    let range = SIZE - min;
+    let range = vec.len() as u32 - min;
     let mut aux:Vec<u32> = vec![0; range as usize];
     for i in 0..range{
         let curr = vec[i as usize];
         let ind = curr - min;
         aux[ind as usize] = curr;
-        thread::sleep(DELAY_MS);
+        thread::sleep(delay);
         // println!("{:?}",aux);
     }
     *vec = aux;
 }
 
-fn counting_sort(vec: &mut Vec<u32>){
-    let mut count_vec:Vec<u32> = vec![0; (SIZE+1) as usize];
-    let mut aux:Vec<u32> = vec![0;SIZE as usize];
-    for i in 0..SIZE{
-        let ind = vec[i as usize];
+fn counting_sort(vec: &mut Vec<u32>, delay: Duration){
+    let mut count_vec:Vec<u32> = vec![0; vec.len()+1];
+    let mut aux:Vec<u32> = vec![0; vec.len()];
+    for i in 0..vec.len(){
+        let ind = vec[i];
         count_vec[ind as usize] +=1;
-        thread::sleep(DELAY_MS);
+        thread::sleep(delay);
         // println!("{:?}",count_vec);
     }
-    for i in 0..SIZE-1{
-        count_vec[(i+1) as usize] += count_vec[i as usize];
+    for i in 0..vec.len()-1{
+        count_vec[i+1] += count_vec[i];
     }
-    for i in (0..SIZE).rev(){
-        let a = vec[i as usize];
+    for i in (0..vec.len()).rev(){
+        let a = vec[i];
         let b = count_vec[a as usize] - 1;
         count_vec[a as usize] -= 1;
         aux[b as usize] = a;
-        thread::sleep(DELAY_MS);
+        thread::sleep(delay);
         // println!("{:?}",aux);
     }
     *vec = aux;
 }
 
-fn radix_helper(vec: &mut Vec<u32>,place: u32,radix: u32){
-    let mut count_vec:Vec<u32> = vec![0; (SIZE+1) as usize];
-    let mut aux:Vec<u32> = vec![0;SIZE as usize];
+fn radix_helper(vec: &mut Vec<u32>,place: u32,radix: u32, delay: Duration){
+    let mut count_vec:Vec<u32> = vec![0; vec.len()+1];
+    let mut aux:Vec<u32> = vec![0; vec.len()];
     let digit_of = |x| x / place % radix;
-    for i in 0..SIZE{
-        let ind = digit_of(vec[i as usize]);
+    for i in 0..vec.len(){
+        let ind = digit_of(vec[i]);
         count_vec[ind as usize] += 1;
     }
 
-    for i in 1..SIZE{
-        let ui = i as usize;
+    for i in 1..vec.len(){
+        let ui = i;
         count_vec[ui] += count_vec[ui-1];
     }
 
-    for i in (0..SIZE).rev(){
-        let ui = i as usize;
+    for i in (0..vec.len()).rev(){
+        let ui = i;
         let ind = digit_of(vec[ui]);
         let uind = ind as usize;
         count_vec[uind] -= 1;
@@ -204,33 +216,23 @@ fn radix_helper(vec: &mut Vec<u32>,place: u32,radix: u32){
     *vec = aux;
 }
 
-fn radix_sort_lsd(vec: &mut Vec<u32>) {
+fn radix_sort_lsd(vec: &mut Vec<u32>, delay: Duration, base: u32) {
     let mut mul = 1;
-    let mut max = SIZE-1;
-    let radix = 10;
+    let mut max = vec.len() as u32 - 1;
+    let radix = base;
     while max > 0{
-        radix_helper(vec,mul,radix);
+        radix_helper(vec,mul,radix,delay);
         mul*=radix;
         max/=radix;
 
-        thread::sleep(DELAY_MS);
-        // println!("{:?}",vec);
+        thread::sleep(delay);
     }
 }
-
-fn set_data(){
-    let mut vec: Vec<u32> = (0..SIZE).collect();
-    vec.shuffle(&mut rand::thread_rng());
-    println!("{:?}\n",vec);
-    counting_sort(&mut vec);
-    println!("\n{:?}",vec);
-}
-
 /******************************************************************************/
 /*                             GRAPHICS HANDLING                              */
 /******************************************************************************/
 #[derive(PartialEq)]
-enum types{
+enum Types {
     Bubble,
     Selection,
     Insertion,
@@ -238,47 +240,53 @@ enum types{
     Merge,
     Pigeonhole,
     Counting,
-    Radix,
+    RadixLSD,
 }
 
-impl types {
+impl Types {
     fn as_str(&self) -> &'static str {
         match self {
-            types::Bubble => "Bubble Sort",
-            types::Selection => "Selection Sort",
-            types::Insertion => "Insertion Sort",
-            types::Heap => "Heap Sort",
-            types::Merge => "Merge Sort",
-            types::Pigeonhole => "Pigeonhole Sort",
-            types::Counting => "Counting Sort",
-            types::Radix => "Radix Sort"
+            Types::Bubble => "Bubble Sort",
+            Types::Selection => "Selection Sort",
+            Types::Insertion => "Insertion Sort",
+            Types::Heap => "Heap Sort",
+            Types::Merge => "Merge Sort",
+            Types::Pigeonhole => "Pigeonhole Sort",
+            Types::Counting => "Counting Sort",
+            Types::RadixLSD => "Radix Sort"
         }
     }
 }
 
-impl fmt::Display for types {
+impl fmt::Display for Types {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            types::Bubble => write!(f,"Bubble Sort"),
-            types::Selection => write!(f,"Selection Sort"),
-            types::Insertion => write!(f,"Insertion Sort"),
-            types::Heap => write!(f,"Heap Sort"),
-            types::Merge => write!(f,"Merge Sort"),
-            types::Pigeonhole => write!(f,"Pigeonhole Sort"),
-            types::Counting => write!(f,"Counting Sort"),
-            types::Radix => write!(f,"Radix Sort")
+            Types::Bubble => write!(f, "Bubble Sort"),
+            Types::Selection => write!(f, "Selection Sort"),
+            Types::Insertion => write!(f, "Insertion Sort"),
+            Types::Heap => write!(f, "Heap Sort"),
+            Types::Merge => write!(f, "Merge Sort"),
+            Types::Pigeonhole => write!(f, "Pigeonhole Sort"),
+            Types::Counting => write!(f, "Counting Sort"),
+            Types::RadixLSD => write!(f, "Radix Sort")
         }
     }
 }
 
 struct MainWindow {
-    sort_type: types,
+    sort_type: Types,
+    vec_size: u32,
+    delay_ms: u64,
+    radix_base: u32,
 }
 
 impl Default for MainWindow {
     fn default() -> Self {
         Self {
-            sort_type: types::Bubble,
+            sort_type: Types::Bubble,
+            vec_size: 10,
+            delay_ms: 0,
+            radix_base: 10,
         }
     }
 }
@@ -291,43 +299,89 @@ impl eframe::App for MainWindow {
 
             // Dropdown menu for sorting types
             let selected_type:String = self.sort_type.to_string();
-            ui.label(format!("Selected Sorting Algorithm: '{}'", selected_type));
+            ui.end_row();
+
+            //initialize vec here
+            //this means vec.len() can no longer be constant
+            //going to have to replace all occurrences with vec.len()
+            let mut vec: Vec<u32> = (0..self.vec_size).collect();
+            let delay = Duration::from_millis(self.delay_ms);
 
             ui.horizontal(|ui| {
-                let label = ui.label("Sorting Type:");
+                ui.label("Sorting Type: ");
 
-                egui::ComboBox::from_label("Take your pick")
+                //dropdown menu for all possible algorithms
+                egui::ComboBox::from_label("")
                     .selected_text(format!("{}",self.sort_type))
                     .show_ui(ui, |ui| {
                         ui.style_mut().wrap = Some(false);
                         ui.set_min_width(60.0);
-                        ui.selectable_value(&mut self.sort_type, types::Bubble, types::Bubble.to_string());
-                        ui.selectable_value(&mut self.sort_type, types::Selection, types::Selection.to_string());
-                        ui.selectable_value(&mut self.sort_type, types::Insertion, types::Insertion.to_string());
-                        ui.selectable_value(&mut self.sort_type, types::Heap, types::Heap.to_string());
-                        ui.selectable_value(&mut self.sort_type, types::Merge, types::Merge.to_string());
-                        ui.selectable_value(&mut self.sort_type, types::Pigeonhole, types::Pigeonhole.to_string());
-                        ui.selectable_value(&mut self.sort_type, types::Counting, types::Counting.to_string());
-                        ui.selectable_value(&mut self.sort_type, types::Radix, types::Radix.to_string());
+                        ui.selectable_value(&mut self.sort_type, Types::Bubble, Types::Bubble.to_string());
+                        ui.selectable_value(&mut self.sort_type, Types::Selection, Types::Selection.to_string());
+                        ui.selectable_value(&mut self.sort_type, Types::Insertion, Types::Insertion.to_string());
+                        ui.selectable_value(&mut self.sort_type, Types::Heap, Types::Heap.to_string());
+                        ui.selectable_value(&mut self.sort_type, Types::Merge, Types::Merge.to_string());
+                        ui.selectable_value(&mut self.sort_type, Types::Pigeonhole, Types::Pigeonhole.to_string());
+                        ui.selectable_value(&mut self.sort_type, Types::Counting, Types::Counting.to_string());
+                        ui.selectable_value(&mut self.sort_type, Types::RadixLSD, Types::RadixLSD.to_string());
                     });
                 ui.end_row();
             });
+
+            //optional selector for the base used by radix sort
+            if self.sort_type == Types::RadixLSD{
+                //draggable value box for the delay between sorting iterations
+                ui.horizontal(|ui| {
+                    ui.label("Radix Base: ");
+                    ui.add(egui::DragValue::new(&mut self.radix_base).speed(0.8));
+                });
+                ui.end_row();
+                if self.radix_base < 2 {
+                    self.radix_base = 2;
+                }
+                else if self.radix_base > 64 {
+                    self.radix_base = 64;
+                }
+            }
+
+            //draggable value box for # of elements in vec
+            ui.horizontal(|ui| {
+                ui.label("# of elements:");
+                ui.add(egui::DragValue::new(&mut self.vec_size).speed(0.8));
+                if self.vec_size < 1{
+                    self.vec_size = 1;
+                }
+            });
+            ui.end_row();
+
+            //draggable value box for the delay between sorting iterations
+            ui.horizontal(|ui| {
+                ui.label("delay (ms): ");
+                ui.add(egui::DragValue::new(&mut self.delay_ms).speed(0.8));
+            });
+            ui.end_row();
+
+            //button to randomize the array
+            if ui.button("Randomize Data").clicked() {
+                vec.shuffle(&mut rand::thread_rng());
+                // println!("{:?}",vec); // remove when no longer needed
+            }
+            ui.end_row();
+
+            //figure out how to display the vec here, maybe use a plot :]
         });
 
     }
 }
 
 fn main() -> Result<(), eframe::Error>{
-
     //setup and display the window
     env_logger::init(); // Log to stderr (if you run with `RUST_LOG=debug`).
     let options = eframe::NativeOptions {
-        viewport: egui::ViewportBuilder::default().with_inner_size([320.0, 240.0]),
+        viewport: egui::ViewportBuilder::default().with_inner_size([640.0, 480.0]),
         ..Default::default()
     };
-    eframe::run_native(
-        "Visual Sorting",
-        options,
+    eframe::run_native("Visual Sorting",options,
         Box::new(|cc| {
             Box::<MainWindow>::default()
         }),
