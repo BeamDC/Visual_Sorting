@@ -1,14 +1,16 @@
 #![allow(dead_code, unused_variables)]
 
-//rendering
-use eframe::egui;
-
-//everything else
-use rand::prelude::SliceRandom;
-use std::thread;
-use std::time::Duration;
 use std::cmp::PartialEq;
 use std::fmt;
+use std::thread;
+use std::time::Duration;
+
+//rendering
+use eframe::egui;
+use egui::Response;
+use egui_plot::{Bar, BarChart};
+//everything else
+use rand::prelude::SliceRandom;
 
 /******************************************************************************/
 /*                              COMPARISON SORTS                              */
@@ -82,7 +84,7 @@ fn gnome_sort(vec: &mut Vec<u32>, delay: Duration) {
 
 fn shell_sort(vec: &mut Vec<u32>, delay: Duration) {
     let gaps:Vec<u32> = vec![701,301,132,57,23,10,4,1];
-    
+
     for gap in gaps{
         for i in gap as usize..vec.len(){
             let temp = vec[i];
@@ -177,7 +179,7 @@ fn merge_sort(vec: &mut Vec<u32>, delay: Duration) {
     let mut i = 0; // Index for left half
     let mut j = 0; // Index for right half
     let mut k = 0; // Index for merged array
-    
+
     //merge left & right
     while i < left.len() && j < right.len() {
         if left[i] <= right[j] {
@@ -203,14 +205,14 @@ fn merge_sort(vec: &mut Vec<u32>, delay: Duration) {
         j += 1;
         k += 1;
     }
-    
+
     thread::sleep(delay);
     println!("{:?}",vec);
 }
 
 fn partition(vec: &mut Vec<u32>, left: isize, right: isize, delay: Duration) -> isize {
     let pivot = right;
-    let mut i: isize = left as isize - 1;
+    let mut i: isize = left - 1;
 
     for j in left..=right - 1 {
         if vec[j as usize] <= vec[pivot as usize] {
@@ -322,12 +324,15 @@ enum Types {
     Bubble,
     Selection,
     Insertion,
+    Gnome,
+    Shell,
+    Comb,
     Heap,
     Merge,
+    Quick,
     Pigeonhole,
     Counting,
     RadixLSD,
-    //add shell, comb, gnome, quick
 }
 
 // string values for Types::
@@ -337,8 +342,12 @@ impl Types {
             Types::Bubble     => "Bubble Sort",
             Types::Selection  => "Selection Sort",
             Types::Insertion  => "Insertion Sort",
+            Types::Gnome      => "Gnome Sort",
+            Types::Shell      => "Shell Sort",
+            Types::Comb       => "Comb Sort",
             Types::Heap       => "Heap Sort",
             Types::Merge      => "Merge Sort",
+            Types::Quick      => "Quick Sort",
             Types::Pigeonhole => "Pigeonhole Sort",
             Types::Counting   => "Counting Sort",
             Types::RadixLSD   => "Radix Sort"
@@ -353,8 +362,12 @@ impl fmt::Display for Types {
             Types::Bubble     => write!(f, "Bubble Sort"),
             Types::Selection  => write!(f, "Selection Sort"),
             Types::Insertion  => write!(f, "Insertion Sort"),
+            Types::Gnome      => write!(f, "Gnome Sort"),
+            Types::Shell      => write!(f, "Shell Sort"),
+            Types::Comb       => write!(f, "Comb Sort"),
             Types::Heap       => write!(f, "Heap Sort"),
             Types::Merge      => write!(f, "Merge Sort"),
+            Types::Quick      => write!(f, "Quick Sort"),
             Types::Pigeonhole => write!(f, "Pigeonhole Sort"),
             Types::Counting   => write!(f, "Counting Sort"),
             Types::RadixLSD   => write!(f, "Radix Sort")
@@ -367,6 +380,7 @@ struct MainWindow {
     vec_size: u32,
     delay_ms: u64,
     radix_base: u32,
+    vec: Vec<u32>,
 }
 
 impl Default for MainWindow {
@@ -376,24 +390,50 @@ impl Default for MainWindow {
             vec_size: 10,
             delay_ms: 0,
             radix_base: 10,
+            vec: (0..10).collect(),
         }
     }
+}
+
+fn sorting_plot(ui: &mut egui::Ui, vec: &Vec<u32>) -> Response {
+    // Assuming vec contains the values you want to plot as bars
+    let mut bar_series:Vec<Bar> = Vec::new();
+
+    // Iterate over the vector and create a bar for each element
+    for (index, value) in vec.iter().enumerate() {
+
+        let bar = Bar::new((index as f64) + 0.5, (*value + 1) as f64);
+        let bar = bar.width(1.0);
+        bar_series.push(bar);
+    }
+
+    // Create a BarSeries with the data
+    let series = BarChart::new(bar_series);
+
+    // Display the bar chart
+    egui_plot::Plot::new("sorting_plot")
+        .height(320.0)
+        .show_axes(false) // Show axes if needed
+        .data_aspect(1.0)
+        .show(ui, |plot_ui| plot_ui.bar_chart(series))
+        .response
 }
 
 impl eframe::App for MainWindow {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
 
         egui::CentralPanel::default().show(ctx, |ui| {
-            // ui.heading("Visual Sorting");
+            // store the current vec size;
+            let prev_size = self.vec_size;
 
             // Dropdown menu for sorting types
             let selected_type:String = self.sort_type.to_string();
             ui.end_row();
 
             //initialize vec and delay
-            let mut vec: Vec<u32> = (0..self.vec_size).collect();
             let delay = Duration::from_millis(self.delay_ms);
 
+            //dropdown menu for selecting sorts
             ui.horizontal(|ui| {
                 ui.label("Sorting Type: ");
 
@@ -406,8 +446,12 @@ impl eframe::App for MainWindow {
                         ui.selectable_value(&mut self.sort_type, Types::Bubble, Types::Bubble.to_string());
                         ui.selectable_value(&mut self.sort_type, Types::Selection, Types::Selection.to_string());
                         ui.selectable_value(&mut self.sort_type, Types::Insertion, Types::Insertion.to_string());
+                        ui.selectable_value(&mut self.sort_type, Types::Gnome, Types::Gnome.to_string());
+                        ui.selectable_value(&mut self.sort_type, Types::Shell, Types::Shell.to_string());
+                        ui.selectable_value(&mut self.sort_type, Types::Comb, Types::Comb.to_string());
                         ui.selectable_value(&mut self.sort_type, Types::Heap, Types::Heap.to_string());
                         ui.selectable_value(&mut self.sort_type, Types::Merge, Types::Merge.to_string());
+                        ui.selectable_value(&mut self.sort_type, Types::Quick, Types::Quick.to_string());
                         ui.selectable_value(&mut self.sort_type, Types::Pigeonhole, Types::Pigeonhole.to_string());
                         ui.selectable_value(&mut self.sort_type, Types::Counting, Types::Counting.to_string());
                         ui.selectable_value(&mut self.sort_type, Types::RadixLSD, Types::RadixLSD.to_string());
@@ -438,8 +482,16 @@ impl eframe::App for MainWindow {
                 if self.vec_size < 2{
                     self.vec_size = 2;
                 }
+                else if self.vec_size > 10000{
+                    self.vec_size = 10000;
+                }
             });
             ui.end_row();
+
+            //if the vector has changed in size, update it
+            if self.vec_size != prev_size{
+                self.vec = (0..self.vec_size).collect();
+            }
 
             //draggable value box for the delay between sorting iterations
             ui.horizontal(|ui| {
@@ -448,16 +500,17 @@ impl eframe::App for MainWindow {
             });
             ui.end_row();
 
-            //button to randomize the array
+            //button to randomize the vector
             if ui.button("Randomize Data").clicked() {
-                vec.shuffle(&mut rand::thread_rng());
+                self.vec.shuffle(&mut rand::thread_rng());
                 // println!("{:?}",vec); // remove when no longer needed
             }
             ui.end_row();
 
-            //figure out how to display the vec here, maybe use a plot :]
+            //display the vector
+            sorting_plot(ui, &mut self.vec);
+            ui.end_row();
         });
-
     }
 }
 
@@ -469,8 +522,8 @@ fn main() -> Result<(), eframe::Error>{
         ..Default::default()
     };
     eframe::run_native("Visual Sorting",options,
-        Box::new(|cc| {
-            Box::<MainWindow>::default()
-        }),
+                       Box::new(|cc| {
+                           Box::<MainWindow>::default()
+                       }),
     )
 }
