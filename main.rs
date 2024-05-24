@@ -32,6 +32,44 @@ fn bubble_sort(vec: &mut Vec<u32>, delay: Duration) {
     }
 }
 
+fn cocktail_shaker_sort(vec: &mut Vec<u32>, delay: Duration) {
+    let mut flip:bool = true;
+    let mut start:usize = 0;
+    let mut end:usize = vec.len() - 1;
+    
+    while flip {
+        flip = false;
+        
+        for i in start..end{
+            if vec[i] > vec[i+1]{
+                vec.swap(i,i+1);
+                flip = true;
+            }
+        }
+        
+        if !flip{
+            break;
+        }
+        
+        thread::sleep(delay);
+        // println!("{:?}",vec);
+        
+        flip = false;
+        end-=1;
+        
+        for i in (start..end).rev(){
+            if vec[i] > vec[i+1]{
+                vec.swap(i,i+1);
+                flip = true;
+            }
+        }
+        
+        start+=1;
+        thread::sleep(delay);
+        // println!("{:?}",vec);
+    }
+}
+
 fn selection_sort(vec: &mut Vec<u32>, delay: Duration) {
     for i in 0..vec.len(){
         let ui = i;
