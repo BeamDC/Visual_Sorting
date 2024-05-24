@@ -9,6 +9,8 @@ use std::time::Duration;
 use eframe::egui;
 use egui::Response;
 use egui_plot::{Bar, BarChart};
+/// just use egui::*
+
 //everything else
 use rand::prelude::SliceRandom;
 
