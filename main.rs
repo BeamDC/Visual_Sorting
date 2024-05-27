@@ -1,10 +1,5 @@
 #![allow(dead_code, unused_variables)]
 
-use std::cmp::PartialEq;
-use std::fmt;
-use std::thread;
-use std::time::Duration;
-
 //rendering
 use eframe::egui;
 use egui::Response;
@@ -13,6 +8,10 @@ use egui_plot::{Bar, BarChart};
 
 //everything else
 use rand::prelude::SliceRandom;
+use std::cmp::PartialEq;
+use std::fmt;
+use std::thread;
+use std::time::Duration;
 
 /******************************************************************************/
 /*                              COMPARISON SORTS                              */
