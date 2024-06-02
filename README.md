@@ -2,6 +2,4 @@
 idk what im gonna write here yet
 
 # todo
-- visuals.  
-- more algorithms.  
-- upload a proper project, with dependencies and whatnot.  
+- make the sorting display properly, it currently just pauses and will only show the beginning and end 
