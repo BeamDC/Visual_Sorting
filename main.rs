@@ -1,68 +1,69 @@
 #![allow(dead_code, unused_variables)]
 
-//rendering
-use eframe::egui;
-use egui::Response;
-use egui_plot::{Bar, BarChart};
-/// just use egui::*
-
-//everything else
-use rand::prelude::SliceRandom;
 use std::cmp::PartialEq;
 use std::fmt;
 use std::thread;
 use std::time::Duration;
 
+//rendering
+use eframe::egui;
+use egui::*;
+use egui::Rect;
+
+//everything else
+use rand::prelude::SliceRandom;
+
 /******************************************************************************/
 /*                              COMPARISON SORTS                              */
 /******************************************************************************/
-fn bubble_sort(vec: &mut Vec<u32>, delay: Duration) {
+fn bubble_sort(vec: &mut Vec<u32>, delay: Duration, ui: &mut Ui) {
     for i in (0..vec.len()).rev() {
         for j in 0..i {
             let uj= j;
             if vec[uj] > vec[uj+1] {
-                vec[uj] ^= vec[uj+1];
-                vec[uj+1] ^= vec[uj];
-                vec[uj] ^= vec[uj+1];
+                vec.swap(uj,uj+1)
             }
+            // display_vec(&vec, ui);
+            thread::sleep(delay);
         }
-        thread::sleep(delay);
+        display_vec(&vec, ui);
         // println!("{:?}",vec);
     }
+    display_vec(&vec, ui);
 }
 
 fn cocktail_shaker_sort(vec: &mut Vec<u32>, delay: Duration) {
     let mut flip:bool = true;
     let mut start:usize = 0;
     let mut end:usize = vec.len() - 1;
-    
+
     while flip {
         flip = false;
-        
+
         for i in start..end{
             if vec[i] > vec[i+1]{
                 vec.swap(i,i+1);
                 flip = true;
             }
         }
-        
+
         if !flip{
             break;
         }
-        
+
         thread::sleep(delay);
         // println!("{:?}",vec);
-        
+
         flip = false;
         end-=1;
-        
+
         for i in (start..end).rev(){
             if vec[i] > vec[i+1]{
                 vec.swap(i,i+1);
                 flip = true;
             }
         }
-        
+
         start+=1;
         thread::sleep(delay);
         // println!("{:?}",vec);
@@ -318,7 +319,7 @@ fn counting_sort(vec: &mut Vec<u32>, delay: Duration){
     *vec = aux;
 }
 
-fn radix_helper(vec: &mut Vec<u32>,place: u32,radix: u32, delay: Duration){
+fn radix_helper(vec: &mut Vec<u32>,place: u32,radix: u32, delay: Duration,ui: &mut Ui){
     let mut count_vec:Vec<u32> = vec![0; vec.len()+1];
     let mut aux:Vec<u32> = vec![0; vec.len()];
     let digit_of = |x| x / place % radix;
@@ -328,31 +329,30 @@ fn radix_helper(vec: &mut Vec<u32>,place: u32,radix: u32, delay: Duration){
     }
 
     for i in 1..vec.len(){
-        let ui = i;
-        count_vec[ui] += count_vec[ui-1];
+        count_vec[i] += count_vec[i-1];
     }
 
     for i in (0..vec.len()).rev(){
-        let ui = i;
-        let ind = digit_of(vec[ui]);
-        let uind = ind as usize;
-        count_vec[uind] -= 1;
-        aux[count_vec[uind] as usize] = vec[ui];
+        let ind = digit_of(vec[i]) as usize;
+        count_vec[ind] -= 1;
+        aux[count_vec[ind] as usize] = vec[i];
         // println!("{:?}",aux);
+        display_vec(vec,ui);
     }
     *vec = aux;
 }
 
-fn radix_sort_lsd(vec: &mut Vec<u32>, delay: Duration, base: u32) {
+fn radix_sort_lsd(vec: &mut Vec<u32>, delay: Duration, base: u32,ui: &mut Ui) {
     let mut mul = 1;
     let mut max = vec.len() as u32 - 1;
     let radix = base;
     while max > 0{
-        radix_helper(vec,mul,radix,delay);
+        radix_helper(vec,mul,radix,delay,ui);
         mul*=radix;
         max/=radix;
 
         thread::sleep(delay);
+        // println!("{:?}",vec);
     }
 }
 /******************************************************************************/
@@ -361,6 +361,7 @@ fn radix_sort_lsd(vec: &mut Vec<u32>, delay: Duration, base: u32) {
 #[derive(PartialEq)]
 enum Types {
     Bubble,
+    Cocktail,
     Selection,
     Insertion,
     Gnome,
@@ -379,6 +380,7 @@ impl Types {
     fn as_str(&self) -> &'static str {
         match self {
             Types::Bubble     => "Bubble Sort",
+            Types::Cocktail   => "Cocktail Shaker Sort",
             Types::Selection  => "Selection Sort",
             Types::Insertion  => "Insertion Sort",
             Types::Gnome      => "Gnome Sort",
@@ -399,6 +401,7 @@ impl fmt::Display for Types {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
             Types::Bubble     => write!(f, "Bubble Sort"),
+            Types::Cocktail   => write!(f, "Cocktail Shaker Sort"),
             Types::Selection  => write!(f, "Selection Sort"),
             Types::Insertion  => write!(f, "Insertion Sort"),
             Types::Gnome      => write!(f, "Gnome Sort"),
@@ -420,6 +423,10 @@ struct MainWindow {
     delay_ms: u64,
     radix_base: u32,
     vec: Vec<u32>,
+    // chart: BarChart,
+    allow_zoom: Vec2b,
+    allow_drag: Vec2b,
+    allow_scroll: Vec2b,
 }
 
 impl Default for MainWindow {
@@ -428,40 +435,27 @@ impl Default for MainWindow {
             sort_type: Types::Bubble,
             vec_size: 10,
             delay_ms: 0,
-            radix_base: 10,
-            vec: (0..10).collect(),
+            radix_base: 4,
+            vec: (0..30).collect(),
+            // chart: BarChart::new(vec![
+            //     Bar::new(1.0,1.0),
+            //     Bar::new(2.0,2.0),
+            //     Bar::new(3.0,3.0),
+            //     Bar::new(4.0,4.0),
+            //     Bar::new(5.0,5.0)
+            // ])
+            //     .color(Color32::WHITE)
+            //     .width(1.0),
+            allow_zoom: false.into(),
+            allow_drag: false.into(),
+            allow_scroll: false.into(),
         }
     }
 }
 
-fn sorting_plot(ui: &mut egui::Ui, vec: &Vec<u32>) -> Response {
-    // Assuming vec contains the values you want to plot as bars
-    let mut bar_series:Vec<Bar> = Vec::new();
-
-    // Iterate over the vector and create a bar for each element
-    for (index, value) in vec.iter().enumerate() {
-
-        let bar = Bar::new((index as f64) + 0.5, (*value + 1) as f64);
-        let bar = bar.width(1.0);
-        bar_series.push(bar);
-    }
-
-    // Create a BarSeries with the data
-    let series = BarChart::new(bar_series);
-
-    // Display the bar chart
-    egui_plot::Plot::new("sorting_plot")
-        .height(320.0)
-        .show_axes(false) // Show axes if needed
-        .data_aspect(1.0)
-        .show(ui, |plot_ui| plot_ui.bar_chart(series))
-        .response
-}
-
 impl eframe::App for MainWindow {
-    fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
-
-        egui::CentralPanel::default().show(ctx, |ui| {
+    fn update(&mut self, ctx: &Context, _frame: &mut eframe::Frame) {
+        CentralPanel::default().show(ctx, |ui| {
             // store the current vec size;
             let prev_size = self.vec_size;
 
@@ -477,12 +471,13 @@ impl eframe::App for MainWindow {
                 ui.label("Sorting Type: ");
 
                 //dropdown menu for all possible algorithms
-                egui::ComboBox::from_label("")
+                ComboBox::from_label("")
                     .selected_text(format!("{}",self.sort_type))
                     .show_ui(ui, |ui| {
                         ui.style_mut().wrap = Some(false);
                         ui.set_min_width(60.0);
                         ui.selectable_value(&mut self.sort_type, Types::Bubble, Types::Bubble.to_string());
+                        ui.selectable_value(&mut self.sort_type, Types::Cocktail, Types::Cocktail.to_string());
                         ui.selectable_value(&mut self.sort_type, Types::Selection, Types::Selection.to_string());
                         ui.selectable_value(&mut self.sort_type, Types::Insertion, Types::Insertion.to_string());
                         ui.selectable_value(&mut self.sort_type, Types::Gnome, Types::Gnome.to_string());
@@ -503,7 +498,7 @@ impl eframe::App for MainWindow {
                 //draggable value box for the base used in radix sort
                 ui.horizontal(|ui| {
                     ui.label("Radix Base: ");
-                    ui.add(egui::DragValue::new(&mut self.radix_base).speed(0.8));
+                    ui.add(DragValue::new(&mut self.radix_base).speed(0.8));
                 });
                 ui.end_row();
                 if self.radix_base < 2 {
@@ -517,7 +512,7 @@ impl eframe::App for MainWindow {
             //draggable value box for # of elements in vec
             ui.horizontal(|ui| {
                 ui.label("# of elements:");
-                ui.add(egui::DragValue::new(&mut self.vec_size).speed(0.8));
+                ui.add(DragValue::new(&mut self.vec_size).speed(0.8));
                 if self.vec_size < 2{
                     self.vec_size = 2;
                 }
@@ -535,7 +530,7 @@ impl eframe::App for MainWindow {
             //draggable value box for the delay between sorting iterations
             ui.horizontal(|ui| {
                 ui.label("delay (ms): ");
-                ui.add(egui::DragValue::new(&mut self.delay_ms).speed(0.8));
+                ui.add(DragValue::new(&mut self.delay_ms).speed(0.8));
             });
             ui.end_row();
 
@@ -546,10 +541,34 @@ impl eframe::App for MainWindow {
             }
             ui.end_row();
 
-            //display the vector
-            sorting_plot(ui, &mut self.vec);
+            //button to sort the vector
+            if ui.button("Sort Data").clicked() {
+                //execute the sorting
+                bubble_sort(&mut self.vec,delay,ui);
+            }
             ui.end_row();
+
+            //try using rects instead
+            ui.painter_at(Rect::EVERYTHING);
+
+            //loop through vec, and draw bars;
+            display_vec(&self.vec, ui);
         });
+    }
+}
+
+fn display_vec(vec: &Vec<u32>, ui: &mut Ui){
+    let x_offset = 10.0;
+    let y_offset = 400.0;
+    for (x,y) in vec.iter().enumerate() {
+        let x:f32 = x_offset + x as f32;
+        let y:f32 = (*y as f32 / (vec.len() as f32 - 1.0))* 200.0;
+
+        let min = Pos2::new(x,(y_offset - y) + 1.0);
+        let max = Pos2::new(x+1.0,y_offset);
+        // println!("Min: {},{}\nMax: {},{}",min.x,min.y,max.x,max.y);
+        let bar = Rect::from_min_max(min,max);
+        ui.painter().rect_filled(bar,Rounding::ZERO,Color32::WHITE);
     }
 }
 
@@ -557,7 +576,7 @@ fn main() -> Result<(), eframe::Error>{
     //setup and display the window
     env_logger::init(); // Log to stderr (if you run with `RUST_LOG=debug`).
     let options = eframe::NativeOptions {
-        viewport: egui::ViewportBuilder::default().with_inner_size([640.0, 480.0]),
+        viewport: ViewportBuilder::default().with_inner_size([640.0, 640.0]),
         ..Default::default()
     };
     eframe::run_native("Visual Sorting",options,
